@@ -1,0 +1,2 @@
+# client/public/_redirects
+/api/* https://intelicrypto.onrender.com/api/:splat 200
