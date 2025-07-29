@@ -100,7 +100,8 @@ function Signup({ onAuth }: { onAuth: () => void }) {
   );
 }
 
-export default () => {
+// THIS IS THE MODIFIED SECTION
+const App = () => { // Assigned the arrow function to a variable named 'App'
   const [theme, setTheme] = useState<string>(getInitialTheme());
   const [authed, setAuthed] = useState(!!localStorage.getItem("token"));
   const navigate = useNavigate();
@@ -150,3 +151,5 @@ export default () => {
     </div>
   );
 };
+
+export default App; // Export the named variable
