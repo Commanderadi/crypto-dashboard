@@ -4,14 +4,29 @@ import { fetchMarketChart } from "../utils/coingecko.js";
 import dotenv from 'dotenv';
 import Sentiment from 'sentiment';
 dotenv.config();
-const NEWS_API_KEY = process.env.NEWS_API_KEY || '116a17a5c934a03a79fcbca0d4fdd7d4';
+
+const NEWS_API_KEY = process.env.NEWS_API_KEY || 'YOUR_NEWS_API_KEY_HERE'; // Ensure this uses your actual key if not set by ENV
 
 const router = express.Router();
-const BASE = "https://api.coingecko.com/api/v3"; // ✅ Add this line
+const BASE = "https://api.coingecko.com/api/v3";
+
+// --- START CACHING VARIABLES ---
+let cachedCoinList = null;
+let cacheTimestamp = 0;
+const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes in milliseconds
+// --- END CACHING VARIABLES ---
 
 // Get list of coins
 router.get("/list", async (_, res) => {
   try {
+    // --- CACHING LOGIC FOR /list ROUTE ---
+    const now = Date.now();
+    if (cachedCoinList && (now - cacheTimestamp < CACHE_DURATION)) {
+      console.log("Serving coin list from cache.");
+      return res.json(cachedCoinList);
+    }
+    // --- END CACHING LOGIC ---
+
     const { data } = await axios.get(`${BASE}/coins/markets`, {
       params: {
         vs_currency: "usd",
@@ -20,6 +35,13 @@ router.get("/list", async (_, res) => {
         page: 1,
       },
     });
+
+    // --- UPDATE CACHE AFTER SUCCESSFUL FETCH ---
+    cachedCoinList = data;
+    cacheTimestamp = now;
+    console.log("Fetched new coin list and updated cache.");
+    // --- END CACHE UPDATE ---
+
     res.json(data);
   } catch (err) {
     console.error("Error fetching coin list:", err.response ? err.response.data : err.message);
@@ -71,7 +93,8 @@ router.get('/:id/news', async (req, res) => {
     });
     res.json(newsRes.data);
   } catch (err) {
-    console.error('Error fetching news:', err.message);
+    // Also log full error for NewsAPI calls
+    console.error('Error fetching news:', err.response ? err.response.data : err.message);
     res.status(500).json({ error: 'Failed to fetch news' });
   }
 });
@@ -102,7 +125,8 @@ router.get('/:id/sentiment', async (req, res) => {
     else if (avg < -1) label = 'negative';
     res.json({ score: avg, label });
   } catch (err) {
-    console.error('Error fetching sentiment:', err.message);
+    // Also log full error for NewsAPI calls
+    console.error('Error fetching sentiment:', err.response ? err.response.data : err.message);
     res.status(500).json({ error: 'Failed to fetch sentiment' });
   }
 });
