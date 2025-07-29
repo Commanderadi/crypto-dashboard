@@ -4,7 +4,7 @@ import { fetchMarketChart } from "../utils/coingecko.js";
 import dotenv from 'dotenv';
 import Sentiment from 'sentiment';
 dotenv.config();
-const NEWS_API_KEY = process.env.NEWS_API_KEY || '9116a17a5c934a03a7fcbca0d4fdd7d4';
+const NEWS_API_KEY = process.env.NEWS_API_KEY || '116a17a5c934a03a79fcbca0d4fdd7d4';
 
 const router = express.Router();
 const BASE = "https://api.coingecko.com/api/v3"; // ✅ Add this line
@@ -22,7 +22,7 @@ router.get("/list", async (_, res) => {
     });
     res.json(data);
   } catch (err) {
-    console.error("Error fetching coin list:", err.message);
+    console.error("Error fetching coin list:", err.response ? err.response.data : err.message);
     res.status(500).json({ error: "Failed to fetch coin list" });
   }
 });
